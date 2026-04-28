@@ -1,0 +1,191 @@
+
+<style>
+  .ctrl { display: flex; align-items: center; gap: 12px; margin-bottom: 1.1rem; }
+  .ctrl label { font-size: 13px; color: var(--color-text-secondary); min-width: 150px; }
+  .ctrl input[type=range] { flex: 1; }
+  .ctrl .val { font-size: 14px; font-weight: 500; min-width: 70px; text-align: right; color: var(--color-text-primary); }
+  .section-title { font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-tertiary); margin: 1.4rem 0 0.8rem; }
+  .divider { border: none; border-top: 0.5px solid var(--color-border-tertiary); margin: 1.2rem 0; }
+  .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 1.2rem 0; }
+  .card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.85rem 1rem; }
+  .card-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; }
+  .card-value { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
+  .card-value.green { color: #1D9E75; }
+  .card-value.muted { color: var(--color-text-secondary); font-size: 15px; }
+  .card-value.warn { color: #BA7517; }
+  .real-box { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin: 1.2rem 0; background: var(--color-background-primary); }
+  .real-box-title { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 0.6rem; }
+  .real-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .real-row-label { font-size: 13px; color: var(--color-text-secondary); }
+  .real-row-val { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
+  .real-row-val.green { color: #1D9E75; }
+  .real-row-val.warn { color: #BA7517; }
+  .bar-wrap { margin-top: 1.2rem; }
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .bar-label { font-size: 12px; color: var(--color-text-secondary); min-width: 50px; text-align: right; }
+  .bar-track { flex: 1; height: 22px; background: var(--color-background-secondary); border-radius: 4px; overflow: hidden; display: flex; }
+  .seg { height: 100%; transition: width 0.3s ease; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 500; }
+  .seg-principal { background: #B5D4F4; color: #0C447C; }
+  .seg-interest { background: #9FE1CB; color: #085041; }
+  .seg-inflation { background: #F7C1C1; color: #791F1F; }
+  .legend { display: flex; gap: 14px; margin-top: 8px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--color-text-secondary); }
+  .legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .note { font-size: 11px; color: var(--color-text-tertiary); margin-top: 1rem; line-height: 1.5; }
+  h3 { font-size: 15px; font-weight: 500; margin: 0 0 1.2rem; color: var(--color-text-primary); }
+</style>
+
+<h2 class="sr-only">Kamatos kamat kalkulátor reál hozammal és inflációval</h2>
+<h3>Kamatos kamat kalkulátor</h3>
+
+<div class="section-title">Befektetés</div>
+<div class="ctrl">
+  <label>Kezdő összeg</label>
+  <input type="range" min="10000" max="5000000" step="10000" value="100000" id="principal">
+  <span class="val" id="principal-out">100 000 Ft</span>
+</div>
+<div class="ctrl">
+  <label>Havi befizetés</label>
+  <input type="range" min="0" max="100000" step="1000" value="0" id="monthly">
+  <span class="val" id="monthly-out">0 Ft</span>
+</div>
+<div class="ctrl">
+  <label>Időtáv (év)</label>
+  <input type="range" min="1" max="40" step="1" value="10" id="years">
+  <span class="val" id="years-out">10 év</span>
+</div>
+
+<div class="section-title">Hozam & infláció</div>
+<div class="ctrl">
+  <label>Nominális hozam (CAGR)</label>
+  <input type="range" min="1" max="20" step="0.5" value="7" id="rate">
+  <span class="val" id="rate-out">7,0%</span>
+</div>
+<div class="ctrl">
+  <label>Éves infláció (CAGR)</label>
+  <input type="range" min="0" max="20" step="0.5" value="3.5" id="inflation">
+  <span class="val" id="inflation-out">3,5%</span>
+</div>
+
+<hr class="divider">
+
+<div class="cards">
+  <div class="card">
+    <div class="card-label">Nominális végérték</div>
+    <div class="card-value" id="final">—</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Reálérték (mai pénzben)</div>
+    <div class="card-value green" id="real">—</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Reál hozam (éves)</div>
+    <div class="card-value" id="real-rate">—</div>
+  </div>
+</div>
+
+<div class="real-box">
+  <div class="real-box-title">Összefoglaló</div>
+  <div class="real-row"><span class="real-row-label">Befizetett összesen</span><span class="real-row-val" id="invested">—</span></div>
+  <div class="real-row"><span class="real-row-label">Kamatból nyert (nominális)</span><span class="real-row-val green" id="gained">—</span></div>
+  <div class="real-row"><span class="real-row-label">Inflációs veszteség</span><span class="real-row-val warn" id="inf-loss">—</span></div>
+  <div class="real-row" style="margin-top:8px;padding-top:8px;border-top:0.5px solid var(--color-border-tertiary)">
+    <span class="real-row-label" style="font-weight:500;color:var(--color-text-primary)">Reál nyereség</span>
+    <span class="real-row-val green" style="font-size:16px" id="real-gain">—</span>
+  </div>
+</div>
+
+<div class="section-title">Növekedés évek szerint</div>
+<div class="bar-wrap" id="bars"></div>
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#B5D4F4"></div>Befizetett tőke</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#9FE1CB"></div>Kamatból (nominális)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#F7C1C1"></div>Inflációs veszteség</div>
+</div>
+
+<p class="note">A reál hozam a Fisher-egyenlettel számítva: (1 + nominális) / (1 + infláció) − 1. A reálérték azt mutatja, mennyi a végösszeg vásárlóereje mai árakon.</p>
+
+<script>
+function fmt(n) { return Math.round(n).toLocaleString('hu-HU') + ' Ft'; }
+function fmtPct(n) { return (n >= 0 ? '+' : '') + n.toFixed(1).replace('.', ',') + '%'; }
+
+function calc() {
+  const P = parseFloat(document.getElementById('principal').value);
+  const nomRate = parseFloat(document.getElementById('rate').value) / 100;
+  const inflRate = parseFloat(document.getElementById('inflation').value) / 100;
+  const y = parseInt(document.getElementById('years').value);
+  const m = parseFloat(document.getElementById('monthly').value);
+
+  document.getElementById('principal-out').textContent = fmt(P);
+  document.getElementById('monthly-out').textContent = fmt(m);
+  document.getElementById('years-out').textContent = y + ' év';
+  document.getElementById('rate-out').textContent = (nomRate * 100).toFixed(1).replace('.', ',') + '%';
+  document.getElementById('inflation-out').textContent = (inflRate * 100).toFixed(1).replace('.', ',') + '%';
+
+  const rM = nomRate / 12;
+  const n = y * 12;
+  let nomFinal = P * Math.pow(1 + nomRate, y);
+  if (m > 0) nomFinal += m * (Math.pow(1 + rM, n) - 1) / rM;
+
+  const totalInvested = P + m * n;
+  const gained = nomFinal - totalInvested;
+
+  const realRate = (1 + nomRate) / (1 + inflRate) - 1;
+  const inflFactor = Math.pow(1 + inflRate, y);
+  const realFinal = nomFinal / inflFactor;
+  const realGain = realFinal - totalInvested;
+  const inflLoss = nomFinal - realFinal;
+
+  document.getElementById('final').textContent = fmt(nomFinal);
+  document.getElementById('real').textContent = fmt(realFinal);
+  const rrEl = document.getElementById('real-rate');
+  rrEl.textContent = fmtPct(realRate * 100);
+  rrEl.className = 'card-value ' + (realRate >= 0 ? 'green' : 'warn');
+
+  document.getElementById('invested').textContent = fmt(totalInvested);
+  document.getElementById('gained').textContent = '+' + fmt(gained);
+  document.getElementById('inf-loss').textContent = '−' + fmt(inflLoss);
+  const rgEl = document.getElementById('real-gain');
+  rgEl.textContent = (realGain >= 0 ? '+' : '') + fmt(realGain);
+  rgEl.className = 'real-row-val ' + (realGain >= 0 ? 'green' : 'warn');
+
+  const milestones = [];
+  const step = Math.max(1, Math.ceil(y / 4));
+  for (let yr = step; yr < y; yr += step) milestones.push(yr);
+  milestones.push(y);
+
+  const maxVal = nomFinal;
+  const barsEl = document.getElementById('bars');
+  barsEl.innerHTML = '';
+  milestones.forEach(yr => {
+    const nm2 = yr * 12;
+    let nv = P * Math.pow(1 + nomRate, yr);
+    if (m > 0) nv += m * (Math.pow(1 + rM, nm2) - 1) / rM;
+    const inv = P + m * nm2;
+    const inf = nv - nv / Math.pow(1 + inflRate, yr);
+    const interest = nv - inv;
+    const pW = Math.max(0, Math.round((inv / maxVal) * 100));
+    const iW = Math.max(0, Math.round((interest / maxVal) * 100));
+    const fW = Math.max(0, Math.round((inf / maxVal) * 100));
+    const totalW = Math.min(pW + iW, 100);
+    const infW = Math.min(fW, 100);
+    barsEl.innerHTML += `
+      <div class="bar-row">
+        <div class="bar-label">${yr} év</div>
+        <div style="flex:1;position:relative;height:22px;">
+          <div class="bar-track" style="width:100%;position:absolute;top:0;left:0;">
+            <div class="seg seg-principal" style="width:${Math.round(pW/(pW+iW||1)*totalW)}%"></div>
+            <div class="seg seg-interest" style="width:${Math.round(iW/(pW+iW||1)*totalW)}%"></div>
+          </div>
+          <div style="position:absolute;top:0;left:0;height:100%;width:${infW}%;background:rgba(240,149,149,0.35);border-radius:4px;pointer-events:none;border-right:1.5px dashed #E24B4A;"></div>
+        </div>
+        <div style="font-size:11px;font-weight:500;min-width:90px;text-align:right;color:var(--color-text-primary)">${fmt(nv)}</div>
+      </div>`;
+  });
+}
+
+['principal','rate','years','monthly','inflation'].forEach(id => {
+  document.getElementById(id).addEventListener('input', calc);
+});
+calc();
+</script>

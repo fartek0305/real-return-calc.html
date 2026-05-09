@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfólió & Stratégiák – Tudásellenőrző</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f5f3ee; --surface: #ffffff; --surface2: #f0ede6;
+      --border: rgba(0,0,0,0.1); --text: #1a1814; --text-muted: #7a7060; --text-hint: #b0a898;
+      --green: #1a7a5e; --green-bg: #e8f5f0; --green-border: #9fe1cb;
+      --red: #a02020; --red-bg: #fdeaea; --red-border: #f09595;
+      --blue: #1a4a7a; --blue-bg: #e8f0fa; --accent: #2d5a3d;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem 1rem 4rem; display: flex; justify-content: center; }
+    .container { width: 100%; max-width: 600px; }
+    header { margin-bottom: 2rem; }
+    .badge { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 10px; border-radius: 6px; background: var(--blue-bg); color: var(--blue); margin-bottom: 0.75rem; }
+    header h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 6px; }
+    header p { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+    .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-hint); margin: 2rem 0 1rem; }
+    .task { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; margin-bottom: 1rem; transition: border-color 0.2s; }
+    .task.answered-correct { border-color: var(--green-border); }
+    .task.answered-wrong { border-color: var(--red-border); }
+    .task-num { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-hint); margin-bottom: 8px; }
+    .task-q { font-size: 15px; font-weight: 500; color: var(--text); line-height: 1.6; margin-bottom: 1rem; }
+    .choices { display: flex; flex-direction: column; gap: 8px; }
+    .choice-btn { width: 100%; padding: 10px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; text-align: left; cursor: pointer; transition: background 0.15s, border-color 0.15s, transform 0.1s; line-height: 1.5; }
+    .choice-btn:hover:not(:disabled) { background: var(--surface); border-color: rgba(0,0,0,0.2); }
+    .choice-btn:active { transform: scale(0.98); }
+    .choice-btn.correct { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+    .choice-btn.wrong { background: var(--red-bg); border-color: var(--red-border); color: var(--red); }
+    .choice-btn:disabled { cursor: default; }
+    .feedback { margin-top: 12px; font-size: 13px; line-height: 1.6; padding: 12px 16px; border-radius: 10px; display: none; }
+    .feedback.correct { display: block; background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+    .feedback.wrong { display: block; background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+
+    .match-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; margin-bottom: 1rem; }
+    .match-wrap p { font-size: 13px; color: var(--text-muted); margin-bottom: 1.2rem; line-height: 1.5; }
+    .match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .match-col-label { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-hint); margin-bottom: 8px; }
+    .match-left, .match-right { display: flex; flex-direction: column; gap: 8px; }
+    .match-item { padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface2); font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s, border-color 0.15s; min-height: 52px; display: flex; align-items: center; line-height: 1.4; }
+    .match-item.selected { border-color: var(--accent); background: #e8f0e8; color: var(--accent); }
+    .match-item.matched-correct { background: var(--green-bg); border-color: var(--green-border); color: var(--green); cursor: default; }
+    .match-item.matched-wrong { background: var(--red-bg); border-color: var(--red-border); color: var(--red); cursor: default; }
+    .match-result { margin-top: 1rem; font-size: 13px; color: var(--text-muted); padding: 10px 14px; background: var(--surface2); border-radius: 10px; display: none; }
+    .match-result.show { display: block; }
+
+    .score-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; margin-top: 1.5rem; }
+    .score-label { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
+    .score-big { font-family: 'DM Mono', monospace; font-size: 32px; font-weight: 500; color: var(--text); margin-bottom: 1rem; }
+    .score-big span { font-size: 18px; color: var(--text-muted); }
+    .progress-track { width: 100%; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--accent); border-radius: 4px; width: 0%; transition: width 0.5s cubic-bezier(0.4,0,0.2,1); }
+    .score-msg { margin-top: 1rem; font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="badge">3. modul — Tudásellenőrző</div>
+    <h1>Portfólió & Stratégiák</h1>
+    <p>Fogalom-párosítás és feleletválasztós kérdések a befektetési stratégiák témakörből.</p>
+  </header>
+
+  <div class="section-label">1. rész — Fogalom-párosítás</div>
+
+  <div class="match-wrap">
+    <p>Kattints egy fogalomra a bal oszlopban, majd a hozzá tartozó definícióra a jobb oldalon.</p>
+    <div class="match-grid">
+      <div>
+        <div class="match-col-label">Fogalom</div>
+        <div class="match-left" id="left-col">
+          <div class="match-item" data-id="dca" onclick="selectLeft(this)">DCA</div>
+          <div class="match-item" data-id="buyhold" onclick="selectLeft(this)">Buy & Hold</div>
+          <div class="match-item" data-id="allokacio" onclick="selectLeft(this)">Eszközallokáció</div>
+          <div class="match-item" data-id="passziv" onclick="selectLeft(this)">Passzív befektetés</div>
+          <div class="match-item" data-id="piaci" onclick="selectLeft(this)">Piaci portfólió</div>
+        </div>
+      </div>
+      <div>
+        <div class="match-col-label">Definíció</div>
+        <div class="match-right" id="right-col">
+          <div class="match-item" data-id="allokacio" onclick="selectRight(this)">A tőke tudatos elosztása különböző eszközosztályok között.</div>
+          <div class="match-item" data-id="dca" onclick="selectRight(this)">Rendszeres, fix összegű befektetés az árfolyamtól függetlenül.</div>
+          <div class="match-item" data-id="piaci" onclick="selectRight(this)">Az összes befektethető eszköz összessége, piaci kapitalizáció szerint súlyozva.</div>
+          <div class="match-item" data-id="passziv" onclick="selectRight(this)">Indexkövető stratégia, amely nem próbálja megverni a piacot.</div>
+          <div class="match-item" data-id="buyhold" onclick="selectRight(this)">Hosszú távú tartás stratégiája, függetlenül a piaci ingadozásoktól.</div>
+        </div>
+      </div>
+    </div>
+    <div class="match-result" id="match-result"></div>
+  </div>
+
+  <div class="section-label">2. rész — Feleletválasztós kérdések</div>
+
+  <div class="task" id="t1">
+    <div class="task-num">2. feladat</div>
+    <div class="task-q">Az SPIVA kutatás szerint az aktívan kezelt alapok mekkora része teljesít alul a passzív indexhez képest 10-15 éves időtávon?</div>
+    <div class="choices">
+      <button class="choice-btn" onclick="checkChoice('t1','a')">Kb. 30-40%</button>
+      <button class="choice-btn" onclick="checkChoice('t1','b')">Kb. 50-60%</button>
+      <button class="choice-btn" onclick="checkChoice('t1','c')">Több mint 80-90%</button>
+      <button class="choice-btn" onclick="checkChoice('t1','d')">Kb. 10-20%</button>
+    </div>
+    <div class="feedback" id="f-t1"></div>
+  </div>
+
+  <div class="task" id="t2">
+    <div class="task-num">3. feladat</div>
+    <div class="task-q">Miért előnyös a DCA stratégia kezdő befektetőknek?</div>
+    <div class="choices">
+      <button class="choice-btn" onclick="checkChoice('t2','a')">Mert garantálja a magas hozamot</button>
+      <button class="choice-btn" onclick="checkChoice('t2','b')">Mert kiveszi az érzelmi döntéshozatalt és kisimítja a belépési árat</button>
+      <button class="choice-btn" onclick="checkChoice('t2','c')">Mert csak akkor kell befektetni, amikor olcsó a piac</button>
+      <button class="choice-btn" onclick="checkChoice('t2','d')">Mert mindig jobb hozamot ad mint az egyösszegű befektetés</button>
+    </div>
+    <div class="feedback" id="f-t2"></div>
+  </div>
+
+  <div class="task" id="t3">
+    <div class="task-num">4. feladat</div>
+    <div class="task-q">Mi határozza meg leginkább egy portfólió hosszú távú teljesítményét?</div>
+    <div class="choices">
+      <button class="choice-btn" onclick="checkChoice('t3','a')">Az egyedi részvényválasztás minősége</button>
+      <button class="choice-btn" onclick="checkChoice('t3','b')">A kereskedés gyakorisága</button>
+      <button class="choice-btn" onclick="checkChoice('t3','c')">Az eszközallokáció – hogyan osztjuk el a tőkét eszközosztályok között</button>
+      <button class="choice-btn" onclick="checkChoice('t3','d')">A befektetési alap neve és hírneve</button>
+    </div>
+    <div class="feedback" id="f-t3"></div>
+  </div>
+
+  <div class="task" id="t4">
+    <div class="task-num">5. feladat</div>
+    <div class="task-q">Egy 20 éves befektető portfóliójában az ökölszabály szerint mekkora legyen a részvények aránya?</div>
+    <div class="choices">
+      <button class="choice-btn" onclick="checkChoice('t4','a')">20% részvény, 80% kötvény</button>
+      <button class="choice-btn" onclick="checkChoice('t4','b')">50% részvény, 50% kötvény</button>
+      <button class="choice-btn" onclick="checkChoice('t4','c')">80% részvény, 20% kötvény</button>
+      <button class="choice-btn" onclick="checkChoice('t4','d')">100% részvény, 0% kötvény</button>
+    </div>
+    <div class="feedback" id="f-t4"></div>
+  </div>
+
+  <div class="task" id="t5">
+    <div class="task-num">6. feladat</div>
+    <div class="task-q">Melyik állítás igaz a buy & hold stratégiáról?</div>
+    <div class="choices">
+      <button class="choice-btn" onclick="checkChoice('t5','a')">Soha nem kell újra megnézni a portfóliót</button>
+      <button class="choice-btn" onclick="checkChoice('t5','b')">Csak emelkedő piacon működik</button>
+      <button class="choice-btn" onclick="checkChoice('t5','c')">Az S&P 500 minden 20 éves időszakban pozitív hozamot termelt historikusan</button>
+      <button class="choice-btn" onclick="checkChoice('t5','d')">Aktív kereskedést igényel</button>
+    </div>
+    <div class="feedback" id="f-t5"></div>
+  </div>
+
+  <div class="score-card">
+    <div class="score-label">Helyes válaszok</div>
+    <div class="score-big"><span id="score">0</span> <span>/ 10</span></div>
+    <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+    <div class="score-msg" id="score-msg">Oldd meg a feladatokat!</div>
+  </div>
+</div>
+
+<script>
+  const totalQ = 10;
+  let score = 0;
+  let matchCorrect = 0;
+  const taskDone = {};
+
+  const correctAnswers = { t1: 'c', t2: 'b', t3: 'c', t4: 'c', t5: 'c' };
+  const feedbackTexts = {
+    t1: { ok: '✓ Helyes! Az SPIVA adatok szerint az aktív alapok 80-90%-a alulteljesít hosszú távon – ez az egyik legerősebb érv a passzív befektetés mellett.', err: '✗ Nem egészen. Az SPIVA kutatás szerint az aktív alapok több mint 80-90%-a alulteljesít 10-15 éves időtávon a passzív indexhez képest.' },
+    t2: { ok: '✓ Pontosan! A DCA legnagyobb előnye, hogy automatikus – nem kell "tökéletes" belépési időpontot keresni, és nem enged teret a pániknak.', err: '✗ Nem egészen. A DCA nem garantál magas hozamot, és nem mindig jobb az egyösszegű befektetésnél – de kiveszi az érzelmi döntéshozatalt és kisimítja a belépési árat.' },
+    t3: { ok: '✓ Helyes! Kutatások szerint a portfólió teljesítményének ~90%-át az eszközallokáció magyarázza – nem az egyedi részvényválasztás.', err: '✗ Nem egészen. Kutatások szerint a teljesítmény ~90%-át az eszközallokáció határozza meg, nem az egyedi részvényválasztás vagy a kereskedés gyakorisága.' },
+    t4: { ok: '✓ Pontosan! Az ökölszabály szerint a kötvények aránya = életkor (20%), tehát 80% részvény és 20% kötvény – bár ezt manapság sokan vitatják.', err: '✗ Nem egészen. Az ökölszabály szerint a kötvények aránya kb. annyi, ahány éves vagy – tehát 20 évesen 20% kötvény és 80% részvény.' },
+    t5: { ok: '✓ Helyes! Ez az egyik legmeggyőzőbb statisztika a buy & hold mellett – még a legrosszabb pillanatban vásárlók is pozitív hozamot értek el 20 év alatt.', err: '✗ Nem egészen. A buy & hold nem passzív figyelmen kívül hagyást jelent – évente érdemes átnézni – de a lényege az, hogy az S&P 500 minden 20 éves periódusban pozitív hozamot termelt.' }
+  };
+
+  const msgs = ['Oldd meg a feladatokat!','Jó kezdet!','Haladás!','Egyre jobb!','Szép munka!','Majdnem megvan!','Kiváló!','Nagyon jó!','Szinte tökéletes!','Majdnem tökéletes!','🎉 Tökéletes eredmény!'];
+
+  function updateScore() {
+    document.getElementById('score').textContent = score;
+    document.getElementById('progress').style.width = (score / totalQ * 100) + '%';
+    document.getElementById('score-msg').textContent = msgs[Math.min(score, msgs.length - 1)];
+  }
+
+  function checkChoice(taskId, choice) {
+    if (taskDone[taskId]) return;
+    taskDone[taskId] = true;
+    const task = document.getElementById(taskId);
+    const btns = task.querySelectorAll('.choice-btn');
+    btns.forEach(b => b.disabled = true);
+    const isCorrect = choice === correctAnswers[taskId];
+    const idx = ['a','b','c','d'].indexOf(choice);
+    btns[idx].className = 'choice-btn ' + (isCorrect ? 'correct' : 'wrong');
+    const fb = document.getElementById('f-' + taskId);
+    fb.className = 'feedback ' + (isCorrect ? 'correct' : 'wrong');
+    fb.textContent = isCorrect ? feedbackTexts[taskId].ok : feedbackTexts[taskId].err;
+    task.className = 'task ' + (isCorrect ? 'answered-correct' : 'answered-wrong');
+    if (isCorrect) { score++; updateScore(); }
+  }
+
+  let matchSelected = null;
+
+  function selectLeft(el) {
+    if (el.classList.contains('matched-correct') || el.classList.contains('matched-wrong')) return;
+    document.querySelectorAll('#left-col .match-item').forEach(i => i.classList.remove('selected'));
+    el.classList.add('selected');
+    matchSelected = el;
+    checkMatch();
+  }
+
+  function selectRight(el) {
+    if (el.classList.contains('matched-correct') || el.classList.contains('matched-wrong')) return;
+    document.querySelectorAll('#right-col .match-item').forEach(i => i.classList.remove('selected'));
+    el.classList.add('selected');
+    checkMatch();
+  }
+
+  function checkMatch() {
+    const left = document.querySelector('#left-col .match-item.selected');
+    const right = document.querySelector('#right-col .match-item.selected');
+    if (!left || !right) return;
+    const isCorrect = left.dataset.id === right.dataset.id;
+    left.className = 'match-item ' + (isCorrect ? 'matched-correct' : 'matched-wrong');
+    right.className = 'match-item ' + (isCorrect ? 'matched-correct' : 'matched-wrong');
+    left.onclick = null; right.onclick = null;
+    matchSelected = null;
+    if (isCorrect) { matchCorrect++; score++; updateScore(); }
+    const remaining = document.querySelectorAll('#left-col .match-item:not(.matched-correct):not(.matched-wrong)').length;
+    if (remaining === 0) {
+      const result = document.getElementById('match-result');
+      result.className = 'match-result show';
+      result.textContent = matchCorrect === 5 ? '✓ Minden párosítás helyes! Kiváló.' : `${matchCorrect}/5 helyes párosítás.`;
+    }
+  }
+</script>
+</body>
+</html>

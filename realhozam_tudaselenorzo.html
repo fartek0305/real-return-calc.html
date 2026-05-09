@@ -1,0 +1,163 @@
+
+<h2 class="sr-only">Reál hozam tudásellenőrző – kalkulátort használó feladatsor</h2>
+<style>
+  .wrap { padding: 1.5rem 0; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 10px; border-radius: var(--border-radius-md); background: var(--color-background-info); color: var(--color-text-info); margin-bottom: 1.2rem; }
+  .task { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+  .task-num { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .task-q { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 1rem; line-height: 1.5; }
+  .task-hint { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 1rem; padding: 8px 12px; background: var(--color-background-secondary); border-radius: var(--border-radius-md); border-left: 2px solid var(--color-border-secondary); }
+  .input-row { display: flex; gap: 8px; align-items: center; }
+  .input-row input { flex: 1; max-width: 180px; }
+  .input-row .unit { font-size: 13px; color: var(--color-text-secondary); }
+  .check-btn { font-size: 13px; padding: 0 16px; height: 36px; cursor: pointer; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-primary); transition: background 0.15s; }
+  .check-btn:hover { background: var(--color-background-secondary); }
+  .feedback { margin-top: 10px; font-size: 13px; padding: 10px 14px; border-radius: var(--border-radius-md); display: none; line-height: 1.6; }
+  .feedback.correct { background: var(--color-background-success); color: var(--color-text-success); display: block; }
+  .feedback.wrong { background: var(--color-background-danger); color: var(--color-text-danger); display: block; }
+  .feedback.show { display: block; }
+  .score-bar { background: var(--color-background-secondary); border-radius: var(--border-radius-lg); padding: 1.25rem 1.5rem; margin-top: 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .score-label { font-size: 13px; color: var(--color-text-secondary); }
+  .score-val { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+  .progress-track { flex: 1; height: 6px; background: var(--color-background-primary); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: #1D9E75; border-radius: 3px; transition: width 0.4s ease; width: 0%; }
+  .calc-link { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-info); text-decoration: none; margin-bottom: 1rem; }
+</style>
+
+<div class="wrap">
+  <div class="badge">Tudásellenőrző — reál hozam</div>
+
+  <p style="font-size:13px;color:var(--color-text-secondary);margin-bottom:1.5rem;line-height:1.6;">
+    Használd a kamatos kamat kalkulátort a feladatok megoldásához! A kalkulátor a tananyag előző részébe van beágyazva.
+  </p>
+
+  <div class="task" id="t1">
+    <div class="task-num">1. feladat</div>
+    <div class="task-q">Befektetsz 500 000 Ft-ot 8%-os nominális éves hozammal, az infláció 3%. Mennyi a pontos reál hozam a Fisher-egyenlet szerint?</div>
+    <div class="task-hint">Állítsd be a kalkulátorban: kezdő összeg 500 000 Ft, nominális hozam 8%, infláció 3%. Keresd a "Reál hozam (éves)" mezőt.</div>
+    <div class="input-row">
+      <input type="number" step="0.01" placeholder="pl. 4.85" id="a1">
+      <span class="unit">%</span>
+      <button class="check-btn" onclick="check(1)">Ellenőrzés</button>
+    </div>
+    <div class="feedback" id="f1"></div>
+  </div>
+
+  <div class="task" id="t2">
+    <div class="task-num">2. feladat</div>
+    <div class="task-q">Ugyanazzal a befektetéssel (8% nominális, 3% infláció), 10 év után mennyi a reálérték mai pénzben, ha nem fizetsz be havonta semmit?</div>
+    <div class="task-hint">Állítsd be az időtávot 10 évre, a havi befizetést 0-ra. Nézd meg a "Reálérték (mai pénzben)" kártyát.</div>
+    <div class="input-row">
+      <input type="number" step="1000" placeholder="pl. 850000" id="a2">
+      <span class="unit">Ft</span>
+      <button class="check-btn" onclick="check(2)">Ellenőrzés</button>
+    </div>
+    <div class="feedback" id="f2"></div>
+  </div>
+
+  <div class="task" id="t3">
+    <div class="task-num">3. feladat</div>
+    <div class="task-q">Mi történik a reál hozammal, ha az inflációt 8%-ra emeled (nominális hozam marad 8%)? Pozitív, nulla vagy negatív lesz?</div>
+    <div class="task-hint">Csak az inflációs csúszkát mozgasd 8%-ra, a nominális hozamot hagyd 8%-on. Figyeld meg a "Reál hozam (éves)" értékét.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+      <button class="check-btn" onclick="checkChoice(3,'pozitív')" id="c3a">Pozitív</button>
+      <button class="check-btn" onclick="checkChoice(3,'nulla')" id="c3b">Nulla (≈0%)</button>
+      <button class="check-btn" onclick="checkChoice(3,'negatív')" id="c3c">Negatív</button>
+    </div>
+    <div class="feedback" id="f3"></div>
+  </div>
+
+  <div class="task" id="t4">
+    <div class="task-num">4. feladat</div>
+    <div class="task-q">Havi 20 000 Ft-ot fizetsz be 20 éven át, 7% nominális hozammal és 3,5% inflációval. Mennyi a reál nyereség (inflációs veszteség levonása után)?</div>
+    <div class="task-hint">Állítsd be: kezdő összeg 0 Ft (vagy minimumra), havi befizetés 20 000 Ft, időtáv 20 év, nominális 7%, infláció 3,5%. Keresd a "Reál nyereség" sort az összefoglalóban.</div>
+    <div class="input-row">
+      <input type="number" step="10000" placeholder="pl. 2500000" id="a4">
+      <span class="unit">Ft</span>
+      <button class="check-btn" onclick="check(4)">Ellenőrzés</button>
+    </div>
+    <div class="feedback" id="f4"></div>
+  </div>
+
+  <div class="task" id="t5">
+    <div class="task-num">5. feladat — gondolkodj!</div>
+    <div class="task-q">Ha a nominális hozamod 5% és az infláció 6%, hogyan nevezzük ezt a jelenséget, és mit jelent a befektetésedre nézve?</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+      <button class="check-btn" onclick="checkChoice(5,'a')" id="c5a">Pozitív reál hozam – a pénzed vásárlóereje nő</button>
+      <button class="check-btn" onclick="checkChoice(5,'b')" id="c5b">Negatív reál hozam – a pénzed vásárlóereje csökken</button>
+      <button class="check-btn" onclick="checkChoice(5,'c')" id="c5c">Névleges veszteség – kevesebb pénzed van mint előtte</button>
+    </div>
+    <div class="feedback" id="f5"></div>
+  </div>
+
+  <div class="score-bar">
+    <div>
+      <div class="score-label">Helyes válaszok</div>
+      <div class="score-val"><span id="score">0</span> / 5</div>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const answers = { 1: null, 2: null, 3: null, 4: null, 5: null };
+  const correct = { 1: false, 2: false, 3: false, 4: false, 5: false };
+
+  const feedback = {
+    1: {
+      ok: "Helyes! A Fisher-egyenlet: (1,08 / 1,03) − 1 ≈ 4,85%. Figyeld meg, hogy ez kicsit kevesebb mint a közelítő 8−3=5% — az egyenlet pontosabb.",
+      err: "Nem egészen. A Fisher-egyenlet szerint: (1 + 0,08) / (1 + 0,03) − 1 = 1,08 / 1,03 − 1 ≈ 4,85%. Ellenőrizd a kalkulátorban a 'Reál hozam (éves)' mezőt."
+    },
+    2: {
+      ok: "Helyes! 500 000 × 1,08¹⁰ ≈ 1 079 462 Ft nominálisan, de mai pénzben (1,03¹⁰ osztva) ez kb. 803 000–810 000 Ft körül van. Az infláció tehát közel 270 000 Ft-ot 'evett meg' a nominális hozamból.",
+      err: "Próbáld újra! A kalkulátorban állítsd be: 500 000 Ft kezdő összeg, 0 Ft havi befizetés, 10 év, 8% nominális, 3% infláció. A 'Reálérték (mai pénzben)' kártya mutatja a választ."
+    },
+    3: {
+      ok: "Pontosan! Ha a nominális hozam és az infláció egyenlő, a reál hozam ≈ 0% — a pénzed nominálisan nő, de vásárlóerőben nem változik. A Fisher-egyenlet: 1,08/1,08 − 1 = 0.",
+      err: "Gondold át újra! Ha infláció = nominális hozam, mi marad a kettő 'különbségeként'?"
+    },
+    4: {
+      ok: "Helyes! A pontos érték kalkulátorfüggő, de 2 000 000 és 2 800 000 Ft között kell lennie. Ez az a tényleges vásárlóerő-növekmény, amit a 20 év alatt szereztél.",
+      err: "Próbáld újra! Fontos: a kezdő összeget állítsd a minimumra (10 000 Ft), havi befizetés 20 000 Ft, 20 év, 7% nominális, 3,5% infláció. A 'Reál nyereség' sort keresd az összefoglalóban."
+    },
+    5: {
+      ok: "Pontosan! Ez a negatív reál hozam jelensége — nominálisan gyarapszik a pénzed, de az infláció gyorsabban csökkenti a vásárlóerődet mint ahogy a hozam növeli. Ezt bankbetéteknél magas inflációs időszakokban gyakran tapasztalhatjuk.",
+      err: "Nem egészen. Névleges veszteség nem keletkezik — a számlán több pénz van. De a vásárlóerő csökkent, mert az infláció (6%) nagyobb mint a hozam (5%). Ezt nevezzük negatív reál hozamnak."
+    }
+  };
+
+  function updateScore() {
+    const n = Object.values(correct).filter(Boolean).length;
+    document.getElementById('score').textContent = n;
+    document.getElementById('progress').style.width = (n / 5 * 100) + '%';
+  }
+
+  function showFeedback(id, isCorrect) {
+    const el = document.getElementById('f' + id);
+    el.className = 'feedback ' + (isCorrect ? 'correct' : 'wrong');
+    el.textContent = isCorrect ? '✓ ' + feedback[id].ok : '✗ ' + feedback[id].err;
+    if (!correct[id] && isCorrect) {
+      correct[id] = true;
+      updateScore();
+    }
+  }
+
+  function check(id) {
+    const val = parseFloat(document.getElementById('a' + id).value);
+    if (isNaN(val)) return;
+    let ok = false;
+    if (id === 1) ok = val >= 4.7 && val <= 5.0;
+    if (id === 2) ok = val >= 780000 && val <= 840000;
+    if (id === 4) ok = val >= 1800000 && val <= 3000000;
+    showFeedback(id, ok);
+  }
+
+  function checkChoice(id, choice) {
+    let ok = false;
+    if (id === 3) ok = choice === 'nulla';
+    if (id === 5) ok = choice === 'b';
+    showFeedback(id, ok);
+  }
+</script>

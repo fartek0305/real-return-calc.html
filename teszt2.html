@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eszközosztályok – Tudásellenőrző</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f5f3ee; --surface: #ffffff; --surface2: #f0ede6;
+      --border: rgba(0,0,0,0.1); --text: #1a1814; --text-muted: #7a7060; --text-hint: #b0a898;
+      --green: #1a7a5e; --green-bg: #e8f5f0; --green-border: #9fe1cb;
+      --red: #a02020; --red-bg: #fdeaea; --red-border: #f09595;
+      --blue: #1a4a7a; --blue-bg: #e8f0fa; --accent: #2d5a3d;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem 1rem 4rem; display: flex; justify-content: center; }
+    .container { width: 100%; max-width: 600px; }
+    header { margin-bottom: 2rem; }
+    .badge { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 10px; border-radius: 6px; background: var(--blue-bg); color: var(--blue); margin-bottom: 0.75rem; }
+    header h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 6px; }
+    header p { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+    .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-hint); margin: 2rem 0 1rem; }
+    .task { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; margin-bottom: 1rem; transition: border-color 0.2s; }
+    .task.answered-correct { border-color: var(--green-border); }
+    .task.answered-wrong { border-color: var(--red-border); }
+    .task-num { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-hint); margin-bottom: 8px; }
+    .task-q { font-size: 15px; font-weight: 500; color: var(--text); line-height: 1.6; margin-bottom: 1rem; }
+    .choices { display: flex; flex-direction: column; gap: 8px; }
+    .choice-btn { width: 100%; padding: 10px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; text-align: left; cursor: pointer; transition: background 0.15s, border-color 0.15s, transform 0.1s; line-height: 1.5; }
+    .choice-btn:hover:not(:disabled) { background: var(--surface); border-color: rgba(0,0,0,0.2); }
+    .choice-btn:active { transform: scale(0.98); }
+    .choice-btn.correct { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+    .choice-btn.wrong { background: var(--red-bg); border-color: var(--red-border); color: var(--red); }
+    .choice-btn:disabled { cursor: default; }
+    .feedback { margin-top: 12px; font-size: 13px; line-height: 1.6; padding: 12px 16px; border-radius: 10px; display: none; }
+    .feedback.correct { display: block; background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+    .feedback.wrong { display: block; background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+
+    /* Párosítós rész */
+    .match-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; margin-bottom: 1rem; }
+    .match-wrap p { font-size: 13px; color: var(--text-muted); margin-bottom: 1.2rem; line-height: 1.5; }
+    .match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .match-col-label { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-hint); margin-bottom: 8px; }
+    .match-left { display: flex; flex-direction: column; gap: 8px; }
+    .match-right { display: flex; flex-direction: column; gap: 8px; }
+    .match-item { padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface2); font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s, border-color 0.15s; min-height: 52px; display: flex; align-items: center; line-height: 1.4; }
+    .match-item.selected { border-color: var(--accent); background: #e8f0e8; color: var(--accent); }
+    .match-item.matched-correct { background: var(--green-bg); border-color: var(--green-border); color: var(--green); cursor: default; }
+    .match-item.matched-wrong { background: var(--red-bg); border-color: var(--red-border); color: var(--red); cursor: default; }
+    .match-result { margin-top: 1rem; font-size: 13px; color: var(--text-muted); padding: 10px 14px; background: var(--surface2); border-radius: 10px; display: none; }
+    .match-result.show { display: block; }
+
+    .score-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; margin-top: 1.5rem; }
+    .score-label { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
+    .score-big { font-family: 'DM Mono', monospace; font-size: 32px; font-weight: 500; color: var(--text); margin-bottom: 1rem; }
+    .score-big span { font-size: 18px; color: var(--text-muted); }
+    .progress-track { width: 100%; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--accent); border-radius: 4px; width: 0%; transition: width 0.5s cubic-bezier(0.4,0,0.2,1); }
+    .score-msg { margin-top: 1rem; font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="badge">2. modul — Tudásellenőrző</div>
+    <h1>Eszközosztályok</h1>
+    <p>Feleletválasztós kérdések és fogalom-párosítás az eszközosztályok témakörből.</p>
+  </header>
+
+  <div class="section-label">1. rész — Fogalom-párosítás</div>
+
+  <div class="match-wrap">
+    <p>Kattints egy fogalomra a bal oszlopban, majd a hozzá tartozó definícióra a jobb oldalon.</p>
+    <div class="match-grid">
+      <div>
+        <div class="match-col-label">Fogalom</div>
+        <div class="match-left" id="left-col">
+          <div class="match-item" data-id="etf" onclick="selectLeft(this)">ETF</div>
+          <div class="match-item" data-id="diverzifikacio" onclick="selectLeft(this)">Diverzifikáció</div>
+          <div class="match-item" data-id="likviditas" onclick="selectLeft(this)">Likviditás</div>
+          <div class="match-item" data-id="osztalek" onclick="selectLeft(this)">Osztalék</div>
+          <div class="match-item" data-id="kotveny" onclick="selectLeft(this)">Kötvény</div>
+        </div>
+      </div>
+      <div>
+        <div class="match-col-label">Definíció</div>
+        <div class="match-right" id="right-col">
+          <div class="match-item" data-id="likviditas" onclick="selectRight(this)">Mennyire gyorsan lehet egy eszközt pénzzé alakítani veszteség nélkül.</div>
+          <div class="match-item" data-id="etf" onclick="selectRight(this)">Tőzsdén kereskedhető alap, amely sok értékpapírt tartalmaz egyetlen vásárlással.</div>
+          <div class="match-item" data-id="kotveny" onclick="selectRight(this)">Hitelviszonyt megtestesítő értékpapír, amely kamatot fizet a hitelezésért.</div>
+          <div class="match-item" data-id="osztalek" onclick="selectRight(this)">A vállalat nyereségéből a részvényeseknek kifizetett összeg.</div>
+          <div class="match-item" data-id="diverzifikacio" onclick="selectRight(this)">A kockázat csökkentése különböző eszközök kombinálásával egy portfólióban.</div>
+        </div>
+      </div>
+    </div>
+    <div class="match-result" id="match-result"></div>
+  </div>
+
+  <div class="section-label">2. rész — Feleletválasztós kérdések</div>
+
+  <div class="task" id="t1">
+    <div class="task-num">2. feladat</div>
+    <div class="task-q">Melyik eszközosztály rendelkezik általában a legalacsonyabb likviditással?</div>
+    <div class="choices">
+      <button class="choice-btn" onclick="checkChoice('t1','a')">Részvény</button>
+      <button class="choice-btn" onclick="checkChoice('t1','b')">Ingatlan</button>
+      <button class="choice-btn" onclick="checkChoice('t1','c')">Állampapír</button>
+      <button class="choice-btn" onclick="checkChoice('t1','d')">ETF</button>
+    </div>
+    <div class="feedback" id="f-t1"></div>
+  </div>
+
+  <div class="task" id="t2">
+    <div class="task-num">3. feladat</div>
+    <div class="task-q">Mi a fő különbség a részvény és a kötvény között?</div>
+    <div class="choices">
+      <button class="choice-btn" onclick="checkChoice('t2','a')">A részvény biztonságosabb mint a kötvény</button>
+      <button class="choice-btn" onclick="checkChoice('t2','b')">A részvény tulajdonrészt, a kötvény hitelviszonyt testesít meg</button>
+      <button class="choice-btn" onclick="checkChoice('t2','c')">A kötvény mindig magasabb hozamot ad mint a részvény</button>
+      <button class="choice-btn" onclick="checkChoice('t2','d')">Nincs köztük lényeges különbség</button>
+    </div>
+    <div class="feedback" id="f-t2"></div>
+  </div>
+
+  <div class="task" id="t3">
+    <div class="task-num">4. feladat</div>
+    <div class="task-q">Miért mondják, hogy az arany és az áruk "menedékeszközök"?</div>
+    <div class="choices">
+      <button class="choice-btn" onclick="checkChoice('t3','a')">Mert mindig emelkedik az áruk</button>
+      <button class="choice-btn" onclick="checkChoice('t3','b')">Mert kamatot és osztalékot fizetnek</button>
+      <button class="choice-btn" onclick="checkChoice('t3','c')">Mert értékük jellemzően emelkedik amikor más eszközök esnek</button>
+      <button class="choice-btn" onclick="checkChoice('t3','d')">Mert az állam garantálja az értéküket</button>
+    </div>
+    <div class="feedback" id="f-t3"></div>
+  </div>
+
+  <div class="task" id="t4">
+    <div class="task-num">5. feladat</div>
+    <div class="task-q">Egy befektető S&P 500 ETF-et vásárol. Ez mit jelent pontosan?</div>
+    <div class="choices">
+      <button class="choice-btn" onclick="checkChoice('t4','a')">Az 500 legjobb részvényt válogatta ki manuálisan</button>
+      <button class="choice-btn" onclick="checkChoice('t4','b')">Egyetlen vásárlással az 500 legnagyobb amerikai vállalat részvényeibe fektetett</button>
+      <button class="choice-btn" onclick="checkChoice('t4','c')">500 különböző kötvényt vett egyszerre</button>
+      <button class="choice-btn" onclick="checkChoice('t4','d')">Egy aktívan kezelt alapba fektetett be</button>
+    </div>
+    <div class="feedback" id="f-t4"></div>
+  </div>
+
+  <div class="task" id="t5">
+    <div class="task-num">6. feladat</div>
+    <div class="task-q">Melyik állítás igaz a kriptovalutáról?</div>
+    <div class="choices">
+      <button class="choice-btn" onclick="checkChoice('t5','a')">Biztonságos, államilag garantált befektetés</button>
+      <button class="choice-btn" onclick="checkChoice('t5','b')">Rendszeres osztalékot fizet a tulajdonosoknak</button>
+      <button class="choice-btn" onclick="checkChoice('t5','c')">Magas potenciális hozammal és nagyon magas kockázattal rendelkezik</button>
+      <button class="choice-btn" onclick="checkChoice('t5','d')">Alacsonyabb kockázatú mint a kötvény</button>
+    </div>
+    <div class="feedback" id="f-t5"></div>
+  </div>
+
+  <div class="score-card">
+    <div class="score-label">Helyes válaszok</div>
+    <div class="score-big"><span id="score">0</span> <span>/ 9</span></div>
+    <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+    <div class="score-msg" id="score-msg">Oldd meg a feladatokat!</div>
+  </div>
+</div>
+
+<script>
+  const totalQ = 9;
+  let score = 0;
+  let matchSelected = null;
+  let matchCorrect = 0;
+  const taskDone = {};
+
+  const correctAnswers = { t1: 'b', t2: 'b', t3: 'c', t4: 'b', t5: 'c' };
+  const feedbackTexts = {
+    t1: { ok: '✓ Helyes! Az ingatlan a legkevésbé likvid – nem lehet egyik napról a másikra eladni veszteség nélkül.', err: '✗ Nem egészen. Az ingatlan a legkevésbé likvid eszközosztály – az eladás hetekig, hónapokig tarthat.' },
+    t2: { ok: '✓ Pontosan! A részvényes tulajdonos, a kötvényes hitelező. Ez alapvetően meghatározza a kockázatot és a hozamot.', err: '✗ Nem egészen. A részvény tulajdonrészt (te vagy a vállalat résztulajdonosa), a kötvény hitelviszonyt testesít meg (kölcsönadod a pénzed).' },
+    t3: { ok: '✓ Helyes! A menedékeszközök jellemzően ellentétesen mozognak a részvénypiaccal – amikor a tőzsde esik, az arany és az áruk értéke emelkedhet.', err: '✗ Nem egészen. A menedékeszközök azért értékesek, mert értékük jellemzően emelkedik gazdasági bizonytalanság idején, amikor más eszközök esnek.' },
+    t4: { ok: '✓ Pontosan! Ez az ETF lényege: egyetlen vásárlással automatikusan diverzifikálsz, méghozzá nagyon alacsony kezelési díjjal.', err: '✗ Nem egészen. Az S&P 500 ETF automatikusan követi az 500 legnagyobb amerikai vállalatot – nem kell manuálisan válogatni, és nem kötvény.' },
+    t5: { ok: '✓ Helyes! A kripto magas kockázatú, spekulatív eszköz – sem állami garancia, sem osztalék, sem alacsony kockázat nem jellemzi.', err: '✗ Nem egészen. A kriptovaluta magas potenciális hozammal és nagyon magas kockázattal rendelkezik – sem állami garancia, sem rendszeres hozam nincs mögötte.' }
+  };
+
+  const msgs = ['Oldd meg a feladatokat!', 'Jó kezdet!', 'Haladás!', 'Egyre jobb!', 'Szép munka!', 'Majdnem megvan!', 'Kiváló!', 'Nagyon jó!', 'Szinte tökéletes!', '🎉 Tökéletes eredmény!'];
+
+  function updateScore() {
+    document.getElementById('score').textContent = score;
+    document.getElementById('progress').style.width = (score / totalQ * 100) + '%';
+    document.getElementById('score-msg').textContent = msgs[Math.min(score, msgs.length - 1)];
+  }
+
+  function checkChoice(taskId, choice) {
+    if (taskDone[taskId]) return;
+    taskDone[taskId] = true;
+    const task = document.getElementById(taskId);
+    const btns = task.querySelectorAll('.choice-btn');
+    btns.forEach(b => b.disabled = true);
+    const isCorrect = choice === correctAnswers[taskId];
+    const idx = ['a','b','c','d'].indexOf(choice);
+    btns[idx].className = 'choice-btn ' + (isCorrect ? 'correct' : 'wrong');
+    const fb = document.getElementById('f-' + taskId);
+    fb.className = 'feedback ' + (isCorrect ? 'correct' : 'wrong');
+    fb.textContent = isCorrect ? feedbackTexts[taskId].ok : feedbackTexts[taskId].err;
+    task.className = 'task ' + (isCorrect ? 'answered-correct' : 'answered-wrong');
+    if (isCorrect) { score++; updateScore(); }
+  }
+
+  function selectLeft(el) {
+    if (el.classList.contains('matched-correct') || el.classList.contains('matched-wrong')) return;
+    document.querySelectorAll('#left-col .match-item').forEach(i => i.classList.remove('selected'));
+    el.classList.add('selected');
+    matchSelected = { side: 'left', el };
+    tryMatch();
+  }
+
+  function selectRight(el) {
+    if (el.classList.contains('matched-correct') || el.classList.contains('matched-wrong')) return;
+    document.querySelectorAll('#right-col .match-item').forEach(i => i.classList.remove('selected'));
+    el.classList.add('selected');
+    matchSelected = matchSelected && matchSelected.side === 'left' ? { ...matchSelected, rightEl: el } : { side: 'right', el };
+    tryMatch();
+  }
+
+  function tryMatch() {
+    const left = document.querySelector('#left-col .match-item.selected');
+    const right = document.querySelector('#right-col .match-item.selected');
+    if (!left || !right) return;
+    const isCorrect = left.dataset.id === right.dataset.id;
+    left.className = 'match-item ' + (isCorrect ? 'matched-correct' : 'matched-wrong');
+    right.className = 'match-item ' + (isCorrect ? 'matched-correct' : 'matched-wrong');
+    left.onclick = null; right.onclick = null;
+    matchSelected = null;
+    if (isCorrect) {
+      matchCorrect++;
+      score++;
+      updateScore();
+    }
+    const result = document.getElementById('match-result');
+    const remaining = document.querySelectorAll('#left-col .match-item:not(.matched-correct):not(.matched-wrong)').length;
+    if (remaining === 0) {
+      result.className = 'match-result show';
+      result.textContent = matchCorrect === 5 ? '✓ Minden párosítás helyes! Kiváló.' : `${matchCorrect}/5 helyes párosítás.`;
+    }
+  }
+</script>
+</body>
+</html>
